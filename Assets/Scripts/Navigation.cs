@@ -8,12 +8,18 @@ public class Navigation : MonoBehaviour
 {
     public GameObject menuCanvas;
     public GameObject settingCanvas;
+    public GameObject gameModeCanvas;
+    public GameObject fireMapCanvas;
 
+    public GameObject CurrentCanvas;
+    public GameObject TargetCanvas;
 
-   
     public void Play()
+
     {
-        SceneManager.LoadScene("GameScene");
+        menuCanvas.SetActive(false);
+        gameModeCanvas.SetActive(true);
+       
     }
     public void Setting()
     {
@@ -23,8 +29,17 @@ public class Navigation : MonoBehaviour
     }
     public void BackToMenu()
     {
-        settingCanvas.SetActive(false);
-        menuCanvas.SetActive(true);
+        CurrentCanvas.SetActive(false);
+        TargetCanvas.SetActive(true);
+    }
+    public void SwitchMode()
+    {
+        gameModeCanvas.SetActive(false);
+        fireMapCanvas.SetActive(true);
+    }
+    public void ChooseMapAndPlay()
+    {
+        SceneManager.LoadScene("GameScene");
     }
     public void Exit()
     {
