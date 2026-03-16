@@ -2,6 +2,7 @@
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(CapsuleCollider))]
+
 public class Player : MonoBehaviour
 {
     // ================= CAMERA =================
