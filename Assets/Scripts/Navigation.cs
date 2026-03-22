@@ -1,4 +1,4 @@
-
+﻿
 using UnityEngine;
 
 using UnityEngine.SceneManagement;
@@ -40,6 +40,20 @@ public class Navigation : MonoBehaviour
     public void ChooseMapAndPlay()
     {
         SceneManager.LoadScene("GameScene");
+    }
+    public void ExittoMenu()
+    {
+        SceneManager.LoadScene("MenuScene");
+    }
+    public void Replay()
+    {
+        FireSpread.currentFireCount = 0;
+        // Cách 1: Nạp lại Scene đang hoạt động bằng Tên
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        SceneManager.LoadScene(currentSceneName);
+
+        // Đảm bảo TimeScale quay về 1 nếu bạn có dùng Pause game
+        Time.timeScale = 1f;
     }
     public void Exit()
     {
