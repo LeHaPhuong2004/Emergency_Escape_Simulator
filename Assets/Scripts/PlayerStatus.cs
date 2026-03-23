@@ -2,23 +2,17 @@
 using UnityEngine.UI;
 public class PlayerStatus : MonoBehaviour
 {
-    public PlayerMovement playerMovement; // kéo script PlayerMovement vào đây
+    public PlayerMovement playerMovement; 
     public CameraFollow camerafollow;
     private bool isDead = false;
-
-    public Transform cameraHolder; // kéo CameraHolder vào đây
-
+    public Transform cameraHolder; 
     public float maxHealth, maxMana, maxBreath = 200f;
-  
     public float currentHealth, currentMana, currentBreath;
-
     public Slider healthSlider;
     public Slider manaSlider;
     public Slider breathSlider;
-
     public Canvas canvasInGame;
     public Canvas canvasGameOver;
-
     void Start()
     {
         Time.timeScale = 1f;
@@ -31,7 +25,6 @@ public class PlayerStatus : MonoBehaviour
         healthSlider.value = currentHealth;
         manaSlider.value = currentMana;
         breathSlider.value = currentBreath;
-
         canvasGameOver.gameObject.SetActive(false);
        
     }

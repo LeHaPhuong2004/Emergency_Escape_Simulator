@@ -47,18 +47,15 @@ public class PlayerMovement : MonoBehaviour
 
     void MovePlayer()
     {
-        // Tính toán hướng dựa trên hướng xoay của Player đã được Script Camera cập nhật
         Vector3 moveDir = transform.forward * moveZ + transform.right * moveX;
 
-        // Gán vận tốc trực tiếp để triệt tiêu độ trễ của lực (AddForce)
         Vector3 targetVelocity = moveDir.normalized * moveSpeed;
         rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
     }
 
     void Jump()
     {
-        // THAY THẾ: rb.velocity -> rb.linearVelocity
-        // Reset vận tốc Y về 0 để cú nhảy luôn có độ cao bằng nhau
+    
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
 
         rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);

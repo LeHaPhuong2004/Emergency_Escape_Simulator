@@ -3,17 +3,12 @@
 public class CameraFollow : MonoBehaviour
 {
     public float mouseSensitivity = 70f;
-
     public Transform playerBody; // player xoay ngang
-
     float xRotation = 0f;
-
     float mouseX;
     float mouseY;
-
     float smoothMouseX;
     float smoothMouseY;
-
     public float smoothTime = 0.05f;
 
     void Start()
@@ -28,7 +23,7 @@ public class CameraFollow : MonoBehaviour
 
     void Look()
     {
-        // lấy input thô (mượt hơn)
+        // lấy input thô
         mouseX = Input.GetAxisRaw("Mouse X") * mouseSensitivity;
         mouseY = Input.GetAxisRaw("Mouse Y") * mouseSensitivity;
 

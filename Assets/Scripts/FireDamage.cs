@@ -2,7 +2,7 @@
 
 public class FireDamage : MonoBehaviour
 {
-    public float damagePerSecond = 5f; // máu trừ mỗi giây
+    public float damagePerSecond = 5f; 
 
     void OnTriggerStay(Collider other)
     {
