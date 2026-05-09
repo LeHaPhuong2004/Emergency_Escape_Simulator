@@ -48,11 +48,11 @@ public class Navigation : MonoBehaviour
     public void Replay()
     {
         FireSpread.currentFireCount = 0;
-        // Cách 1: Nạp lại Scene đang hoạt động bằng Tên
+        // nạp lại Scene đang hoạt động bằng tên
         string currentSceneName = SceneManager.GetActiveScene().name;
         SceneManager.LoadScene(currentSceneName);
 
-        // Đảm bảo TimeScale quay về 1 nếu bạn có dùng Pause game
+        // reset
         Time.timeScale = 1f;
     }
     public void Exit()

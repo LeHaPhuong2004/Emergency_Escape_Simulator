@@ -18,13 +18,16 @@ public class Interaction : MonoBehaviour
 
     void Update()
     {
-        // debug tia ray
-        Debug.DrawRay(Camera.main.transform.position,
-                      Camera.main.transform.forward * pickUpRange,
-                      Color.red);
+  
+        //Debug.DrawRay(Camera.main.transform.position,
+        //              Camera.main.transform.forward * pickUpRange,
+        //              Color.red);
 
         if (Input.GetKeyDown(KeyCode.E))
         {
+ 
+            if (TryOpenDoor()) return;
+
             if (heldObject == null)
                 TryPickUp();
             else
@@ -50,18 +53,15 @@ public class Interaction : MonoBehaviour
                 heldRb = heldObject.GetComponent<Rigidbody>();
                 heldCol = heldObject.GetComponent<Collider>();
 
-                // TẮT PHYSICS khi cầm
                 heldRb.useGravity = false;
                 heldRb.isKinematic = true;
 
-                // tránh đẩy player
                 if (playerCol != null)
                     Physics.IgnoreCollision(heldCol, playerCol, true);
 
-                // (ổn định nhất) tắt collider khi đang cầm
+       
                 heldCol.enabled = false;
 
-                // gắn vào điểm giữ
                 heldObject.transform.SetParent(holdPoint);
                 heldObject.transform.localPosition = Vector3.zero;
                 heldObject.transform.localRotation = Quaternion.identity;
@@ -78,7 +78,6 @@ public class Interaction : MonoBehaviour
     {
         ReleaseObject();
 
-        // thêm lực ném
         heldRb.AddForce(Camera.main.transform.forward * throwForce, ForceMode.Impulse);
 
         heldObject = null;
@@ -86,17 +85,33 @@ public class Interaction : MonoBehaviour
 
     void ReleaseObject()
     {
-        // bật lại collider
         heldCol.enabled = true;
 
-        // bật lại va chạm với player
         if (playerCol != null)
             Physics.IgnoreCollision(heldCol, playerCol, false);
 
-        // bật lại physics
         heldRb.useGravity = true;
         heldRb.isKinematic = false;
 
         heldObject.transform.SetParent(null);
+    }
+
+    bool TryOpenDoor()
+    {
+        Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, pickUpRange))
+        {
+            OpenDoor door = hit.collider.GetComponent<OpenDoor>();
+            if (door != null)
+            {
+                door.ToggleDoor();
+                Debug.Log("Opened Door");
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -1,0 +1,14 @@
+{
+    "name": "Phuonghale0210.Playmaker.Editor.Tests",
+    "references": [
+        "Phuonghale0210.Playmaker.Editor",
+        "Phuonghale0210.Playmaker"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

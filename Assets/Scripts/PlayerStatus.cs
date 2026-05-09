@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 public class PlayerStatus : MonoBehaviour
 {
-    public PlayerMovement playerMovement; 
+    public Player playerMovement; 
     public CameraFollow camerafollow;
     private bool isDead = false;
     public Transform cameraHolder; 
@@ -13,6 +13,7 @@ public class PlayerStatus : MonoBehaviour
     public Slider breathSlider;
     public Canvas canvasInGame;
     public Canvas canvasGameOver;
+  
     void Start()
     {
         Time.timeScale = 1f;
@@ -60,20 +61,16 @@ public class PlayerStatus : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        // 1. Tắt UI game
         canvasInGame.gameObject.SetActive(false);
 
-        // 2. Bật UI Game Over
         canvasGameOver.gameObject.SetActive(true);
 
-        // 3. Tắt điều khiển player
         if (playerMovement != null && camerafollow != null)
         {
             playerMovement.enabled = false;
             camerafollow.enabled = false;
         }
 
-        // 4. Dừng vật lý (tránh trượt)
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb != null)
         {
@@ -81,11 +78,9 @@ public class PlayerStatus : MonoBehaviour
             rb.isKinematic = true;
         }
 
-        // 5. Mở chuột để bấm UI
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-  
     }
 
 

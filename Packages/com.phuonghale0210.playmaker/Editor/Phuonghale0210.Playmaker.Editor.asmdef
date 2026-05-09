@@ -1,0 +1,10 @@
+{
+    "name": "Phuonghale0210.Playmaker.Editor",
+    "references": [
+      "Phuonghale0210.Playmaker"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

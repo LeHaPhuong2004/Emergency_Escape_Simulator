@@ -27,7 +27,7 @@ public class CameraFollow : MonoBehaviour
         mouseX = Input.GetAxisRaw("Mouse X") * mouseSensitivity;
         mouseY = Input.GetAxisRaw("Mouse Y") * mouseSensitivity;
 
-        // làm mượt chuột
+        // làm mượt 
         smoothMouseX = Mathf.Lerp(smoothMouseX, mouseX, 1f / smoothTime * Time.deltaTime);
         smoothMouseY = Mathf.Lerp(smoothMouseY, mouseY, 1f / smoothTime * Time.deltaTime);
 
