@@ -3,7 +3,7 @@
 public class Player : MonoBehaviour
 {
     [Header("Movement")]
-    public float moveSpeed = 5f;
+    public float moveSpeed = 10f;
     public float jumpForce = 7f;
 
     [Header("Sprint")]
@@ -20,24 +20,29 @@ public class Player : MonoBehaviour
     public float normalY = 1.6f;
     public float crouchSmooth = 10f;
 
-    private PlayerStatus status;
-    private CapsuleCollider col;
-    private float crouchHeight = 1f;
-    private float normalHeight;
-
-    [Header("Detection")]
+    [Header("Ground")]
     public float groundDamping = 5f;
     public LayerMask groundLayer;
     public bool isGrounded;
 
+    [Header("State (IMPORTANT)")]
+    public bool isCrouching;   // <<< thêm cái này
+
+    private PlayerStatus status;
+    private CapsuleCollider col;
     private Rigidbody rb;
+
     private float moveX, moveZ;
+    private float crouchHeight = 1f;
+    private float normalHeight;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         status = GetComponent<PlayerStatus>();
+
         rb.freezeRotation = true;
+
         col = GetComponent<CapsuleCollider>();
         normalHeight = col.height;
     }
@@ -46,7 +51,7 @@ public class Player : MonoBehaviour
     {
         moveX = Input.GetAxisRaw("Horizontal");
         moveZ = Input.GetAxisRaw("Vertical");
-     
+
         isGrounded = Physics.Raycast(transform.position, Vector3.down, 1.1f, groundLayer);
 
         if (isGrounded)
@@ -59,7 +64,10 @@ public class Player : MonoBehaviour
             Jump();
         }
 
-       //chay
+        // ===== CROUCH STATE =====
+        isCrouching = Input.GetKey(KeyCode.LeftShift);
+
+        // ===== SPRINT =====
         if (Input.GetKeyDown(KeyCode.W))
         {
             if (Time.time - lastWPressTime <= doubleTapTime && status.currentMana > 0)
@@ -73,15 +81,14 @@ public class Player : MonoBehaviour
         {
             isSprinting = false;
         }
-        //mana
+
+        // mana
         if (isSprinting)
         {
             status.ReduceMana(manaPerSecond * Time.deltaTime);
 
             if (status.currentMana <= 0)
-            {
                 isSprinting = false;
-            }
         }
         else
         {
@@ -89,13 +96,14 @@ public class Player : MonoBehaviour
             status.currentMana = Mathf.Clamp(status.currentMana, 0, status.maxMana);
             status.manaSlider.value = status.currentMana;
         }
-        bool isCrouching = Input.GetKey(KeyCode.LeftShift);
-        float targetHeigh = isCrouching ? crouchHeight : normalHeight;
-        col.height = Mathf.Lerp(col.height, targetHeigh, crouchSmooth*Time.deltaTime);
+
+        // ===== COLLIDER CROUCH =====
+        float targetHeight = isCrouching ? crouchHeight : normalHeight;
+        col.height = Mathf.Lerp(col.height, targetHeight, crouchSmooth * Time.deltaTime);
         col.center = new Vector3(0, col.height / 2f, 0);
 
-        // cui nguoi
-        float targetY = Input.GetKey(KeyCode.LeftShift) ? crouchY : normalY;
+        // ===== CAMERA CROUCH =====
+        float targetY = isCrouching ? crouchY : normalY;
         Vector3 camPos = cameraHolder.localPosition;
         camPos.y = Mathf.Lerp(camPos.y, targetY, crouchSmooth * Time.deltaTime);
         cameraHolder.localPosition = camPos;
@@ -110,41 +118,25 @@ public class Player : MonoBehaviour
     {
         Vector3 moveDir = transform.forward * moveZ + transform.right * moveX;
 
-        float currentSpeed = moveSpeed;
+        float speed = moveSpeed;
 
-        // sprint
         if (isSprinting && moveZ > 0)
-        {
-            currentSpeed *= sprintMultiplier;
-        }
+            speed *= sprintMultiplier;
 
-        // crouch
-        if (Input.GetKey(KeyCode.LeftShift))
+        if (isCrouching)
         {
-            currentSpeed *= crouchSpeedMultiplier;
+            speed *= crouchSpeedMultiplier;
             isSprinting = false;
         }
 
-        Vector3 targetVelocity = moveDir.normalized * currentSpeed;
+        Vector3 vel = moveDir.normalized * speed;
 
-        rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+        rb.linearVelocity = new Vector3(vel.x, rb.linearVelocity.y, vel.z);
     }
-    void OnCollisionEnter(Collision collision)
-    {
-        foreach (ContactPoint contact in collision.contacts)
-        {
-            if (Vector3.Dot(contact.normal, Vector3.back) > 0.5f)
-            {
-                isSprinting = false;
-                break;
-            }
-        }
-    }
+
     void Jump()
     {
-    
-        rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
-
+        rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
         rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
     }
 }

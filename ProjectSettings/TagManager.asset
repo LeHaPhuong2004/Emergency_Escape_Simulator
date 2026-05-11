@@ -9,6 +9,9 @@ TagManager:
   - HealthSprite
   - fire
   - Pickup
+  - towel
+  - wet_towel
+  - fire_ex
   layers:
   - Default
   - TransparentFX

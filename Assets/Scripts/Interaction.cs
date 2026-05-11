@@ -1,15 +1,20 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 
 public class Interaction : MonoBehaviour
 {
     public float pickUpRange = 3f;
     public Transform holdPoint;
     public float throwForce = 12f;
+    public TextMeshProUGUI itemName;
 
     private GameObject heldObject;
     private Rigidbody heldRb;
     private Collider heldCol;
     private Collider playerCol;
+
+    private UseFireEx extinguisher;
+    
 
     void Start()
     {
@@ -18,25 +23,43 @@ public class Interaction : MonoBehaviour
 
     void Update()
     {
-  
-        //Debug.DrawRay(Camera.main.transform.position,
-        //              Camera.main.transform.forward * pickUpRange,
-        //              Color.red);
+       
+        // ================= DEBUG Q INPUT =================
+        if (Input.GetKey(KeyCode.Q))
+        {
+            Debug.Log("Q PRESSED");
 
+            Debug.Log("heldObject = " + heldObject);
+            Debug.Log("extinguisher = " + extinguisher);
+        }
+
+        // ================= INTERACT =================
         if (Input.GetKeyDown(KeyCode.E))
         {
- 
             if (TryOpenDoor()) return;
 
+            
+        }
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
             if (heldObject == null)
                 TryPickUp();
             else
                 DropObject();
         }
 
+        // ================= THROW =================
         if (Input.GetMouseButtonDown(0) && heldObject != null)
         {
             ThrowObject();
+        }
+
+        // ================= FIRE =================
+        if (extinguisher && heldObject)
+        {
+            Debug.Log("CALL SPRAY()");
+            extinguisher.Spray(Input.GetKey(KeyCode.Q));
         }
     }
 
@@ -45,55 +68,112 @@ public class Interaction : MonoBehaviour
         Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, pickUpRange))
+        if (!Physics.Raycast(ray, out hit, pickUpRange))
         {
-            if (hit.collider.CompareTag("Pickup"))
-            {
-                heldObject = hit.collider.gameObject;
-                heldRb = heldObject.GetComponent<Rigidbody>();
-                heldCol = heldObject.GetComponent<Collider>();
-
-                heldRb.useGravity = false;
-                heldRb.isKinematic = true;
-
-                if (playerCol != null)
-                    Physics.IgnoreCollision(heldCol, playerCol, true);
-
-       
-                heldCol.enabled = false;
-
-                heldObject.transform.SetParent(holdPoint);
-                heldObject.transform.localPosition = Vector3.zero;
-                heldObject.transform.localRotation = Quaternion.identity;
-            }
+            Debug.Log("NO HIT");
+            return;
         }
+
+        if (
+            !hit.collider.CompareTag("Pickup") &&
+            !hit.collider.CompareTag("fire_ex") &&
+            !hit.collider.CompareTag("towel") &&
+            !hit.collider.CompareTag("wet_towel")
+        )
+        {
+            Debug.Log("HIT BUT NOT PICKUP: " + hit.collider.name);
+            return;
+        }
+
+        heldObject = hit.collider.gameObject;
+        Debug.Log("PICKED: " + heldObject.name);
+        if (hit.collider.CompareTag("fire_ex"))
+        {
+            itemName.text = "Fire Extinguisher";
+        }
+        else if (hit.collider.CompareTag("towel"))
+        {
+            itemName.text = "Towel";
+        }
+        //else if (hit.collider.CompareTag("wet_towel"))
+        //{
+        //    itemName.text = "Wet towel";
+        //}
+
+        heldRb = heldObject.GetComponent<Rigidbody>();
+        heldCol = heldObject.GetComponent<Collider>();
+
+
+
+        if (heldRb == null || heldCol == null)
+        {
+            Debug.Log("MISSING RB OR COL");
+            return;
+        }
+
+        heldRb.useGravity = false;
+        heldRb.isKinematic = true;
+
+        if (playerCol != null)
+            Physics.IgnoreCollision(heldCol, playerCol, true);
+
+        heldObject.transform.SetParent(holdPoint);
+        heldObject.transform.localPosition = Vector3.zero;
+        heldObject.transform.localRotation = Quaternion.identity;
+
+        // ===== DEBUG EXTINGUISHER =====
+        extinguisher = heldObject.GetComponent<UseFireEx>();
+
+        Debug.Log("UseFireEx FOUND = " + extinguisher);
     }
 
     void DropObject()
     {
         ReleaseObject();
+        heldObject = null;
+        itemName.text = "";
     }
 
     void ThrowObject()
     {
+        GameObject obj = heldObject;
+        Rigidbody rb = heldRb;
+
         ReleaseObject();
 
-        heldRb.AddForce(Camera.main.transform.forward * throwForce, ForceMode.Impulse);
+        if (rb != null)
+        {
+            rb.AddForce(Camera.main.transform.forward * throwForce, ForceMode.Impulse);
+        }
 
         heldObject = null;
     }
 
     void ReleaseObject()
     {
-        heldCol.enabled = true;
+        itemName.text = "";
+        if (heldObject == null) return;
 
-        if (playerCol != null)
-            Physics.IgnoreCollision(heldCol, playerCol, false);
+        if (heldCol != null)
+        {
+            heldCol.enabled = true;
 
-        heldRb.useGravity = true;
-        heldRb.isKinematic = false;
+            if (playerCol != null)
+                Physics.IgnoreCollision(heldCol, playerCol, false);
+        }
+
+        if (heldRb != null)
+        {
+            heldRb.useGravity = true;
+            heldRb.isKinematic = false;
+        }
 
         heldObject.transform.SetParent(null);
+
+        extinguisher = null;
+        heldObject = null;
+        heldRb = null;
+        heldCol = null;
     }
 
     bool TryOpenDoor()
@@ -101,17 +181,20 @@ public class Interaction : MonoBehaviour
         Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, pickUpRange))
-        {
-            OpenDoor door = hit.collider.GetComponent<OpenDoor>();
-            if (door != null)
-            {
-                door.ToggleDoor();
-                Debug.Log("Opened Door");
-                return true;
-            }
-        }
+        if (!Physics.Raycast(ray, out hit, pickUpRange))
+            return false;
 
-        return false;
+        OpenDoor door = hit.collider.GetComponent<OpenDoor>();
+        if (door == null)
+            return false;
+
+        door.ToggleDoor();
+        Debug.Log("Opened Door: " + hit.collider.name);
+        return true;
+    }
+
+    void MakeWetTowel()
+    {
+        itemName.text = "Wet Towel";
     }
 }

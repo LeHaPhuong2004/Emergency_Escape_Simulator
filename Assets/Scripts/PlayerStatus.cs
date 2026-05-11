@@ -13,7 +13,7 @@ public class PlayerStatus : MonoBehaviour
     public Slider breathSlider;
     public Canvas canvasInGame;
     public Canvas canvasGameOver;
-  
+    public float indoorTime;
     void Start()
     {
         Time.timeScale = 1f;
@@ -29,7 +29,10 @@ public class PlayerStatus : MonoBehaviour
         canvasGameOver.gameObject.SetActive(false);
        
     }
-
+    void Update()
+    {
+        indoorTime += Time.deltaTime;
+    }
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
@@ -56,7 +59,7 @@ public class PlayerStatus : MonoBehaviour
         manaSlider.value = currentMana;
     }
 
-    void Die()
+    public void Die()
     {
         if (isDead) return;
         isDead = true;
@@ -82,6 +85,9 @@ public class PlayerStatus : MonoBehaviour
         Cursor.visible = true;
 
     }
-
+    public float GetExposureMultiplier()
+    {
+        return 1 + (indoorTime / 180f);
+    }
 
 }
