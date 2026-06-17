@@ -20,13 +20,15 @@ public class Player : MonoBehaviour
     public float normalY = 1.6f;
     public float crouchSmooth = 10f;
 
-    [Header("Ground")]
-    public float groundDamping = 5f;
+    [Header("Ground & Slope")]
+    public float groundDamping = 2f; 
     public LayerMask groundLayer;
     public bool isGrounded;
+    public float maxSlopeAngle = 45f; // góc để leo tối đa
+    private RaycastHit slopeHit;
 
     [Header("State (IMPORTANT)")]
-    public bool isCrouching;   // <<< thêm cái này
+    public bool isCrouching;
 
     private PlayerStatus status;
     private CapsuleCollider col;
@@ -36,11 +38,17 @@ public class Player : MonoBehaviour
     private float crouchHeight = 1f;
     private float normalHeight;
 
+    [Header("Footstep")]
+    public float footstepDelay = 0.5f;
+    private float footstepTimer;
+
     void Start()
     {
+        footstepTimer = footstepDelay;
         rb = GetComponent<Rigidbody>();
         status = GetComponent<PlayerStatus>();
 
+        //khoa rb de nhan vat khong bi tac dong khi va chạm
         rb.freezeRotation = true;
 
         col = GetComponent<CapsuleCollider>();
@@ -49,25 +57,31 @@ public class Player : MonoBehaviour
 
     void Update()
     {
+        HandleFootstep();
+
+        //lay input tu nguoi choi
         moveX = Input.GetAxisRaw("Horizontal");
         moveZ = Input.GetAxisRaw("Vertical");
 
-        isGrounded = Physics.Raycast(transform.position, Vector3.down, 1.1f, groundLayer);
+       // ban tia raycst xuong dat de kiem tra mat dat va luu vao slopehit
+        isGrounded = Physics.Raycast(transform.position, Vector3.down, out slopeHit, 1.1f, groundLayer);
 
+        //quan li luc cản
         if (isGrounded)
             rb.linearDamping = groundDamping;
         else
             rb.linearDamping = 0;
 
+       //nhay
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             Jump();
         }
 
-        // ===== CROUCH STATE =====
+        //cui nguoi
         isCrouching = Input.GetKey(KeyCode.LeftShift);
 
-        // ===== SPRINT =====
+        //chay nhanh
         if (Input.GetKeyDown(KeyCode.W))
         {
             if (Time.time - lastWPressTime <= doubleTapTime && status.currentMana > 0)
@@ -82,7 +96,7 @@ public class Player : MonoBehaviour
             isSprinting = false;
         }
 
-        // mana
+        // quan ly mana khi chay nhanh
         if (isSprinting)
         {
             status.ReduceMana(manaPerSecond * Time.deltaTime);
@@ -97,16 +111,36 @@ public class Player : MonoBehaviour
             status.manaSlider.value = status.currentMana;
         }
 
-        // ===== COLLIDER CROUCH =====
+        //collider keo xuong theo camera khi cui
         float targetHeight = isCrouching ? crouchHeight : normalHeight;
         col.height = Mathf.Lerp(col.height, targetHeight, crouchSmooth * Time.deltaTime);
         col.center = new Vector3(0, col.height / 2f, 0);
 
-        // ===== CAMERA CROUCH =====
+       //camera keo xuong
         float targetY = isCrouching ? crouchY : normalY;
         Vector3 camPos = cameraHolder.localPosition;
         camPos.y = Mathf.Lerp(camPos.y, targetY, crouchSmooth * Time.deltaTime);
         cameraHolder.localPosition = camPos;
+    }
+
+    void HandleFootstep()
+    {
+        bool isMoving = Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0;
+
+        if (isMoving)
+        {
+            footstepTimer -= Time.deltaTime;
+
+            if (footstepTimer <= 0)
+            {
+                AudioManager.instance.PlaySFX(AudioManager.instance.footStepClip);
+                footstepTimer = footstepDelay;
+            }
+        }
+        else
+        {
+            footstepTimer = 0;
+        }
     }
 
     void FixedUpdate()
@@ -116,8 +150,10 @@ public class Player : MonoBehaviour
 
     void MovePlayer()
     {
+        //tinh huong di chuyen dua tren goc quay nhan vat
         Vector3 moveDir = transform.forward * moveZ + transform.right * moveX;
 
+        //tinh toc do
         float speed = moveSpeed;
 
         if (isSprinting && moveZ > 0)
@@ -129,14 +165,43 @@ public class Player : MonoBehaviour
             isSprinting = false;
         }
 
-        Vector3 vel = moveDir.normalized * speed;
+        //chuan hoa vector ban dau
+        Vector3 finalMoveDir = moveDir.normalized;
 
-        rb.linearVelocity = new Vector3(vel.x, rb.linearVelocity.y, vel.z);
+        //leo cau thang
+        if (isGrounded)
+        {
+            //tinh goc cua doc dua vao vector phap tuyen
+            float slopeAngle = Vector3.Angle(Vector3.up, slopeHit.normal);
+
+            //do doc hop le
+            if (slopeAngle < maxSlopeAngle && slopeAngle > 0)
+            {
+                //be cong vector di chuyen de di chuyen len doc
+                finalMoveDir = Vector3.ProjectOnPlane(finalMoveDir, slopeHit.normal).normalized;
+            }
+
+           //áp dụng van toc di chuyen
+            Vector3 vel = finalMoveDir * speed;
+            rb.linearVelocity = vel;
+        }
+        else
+        {
+            //neu dang nhay thi chi di chuyen xz giu nguyen trang thai roi cua y
+            Vector3 vel = finalMoveDir * speed;
+            rb.linearVelocity = new Vector3(vel.x, rb.linearVelocity.y, vel.z);
+        }
     }
 
     void Jump()
     {
-        rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
-        rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+        //reset van toc y chi khi nhay xuong de co cu nhay chuan xac
+
+        if (rb.linearVelocity.y < 0)
+        {
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
+        }
+
+        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
 }

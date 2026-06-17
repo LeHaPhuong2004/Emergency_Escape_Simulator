@@ -8,18 +8,17 @@ public class FireExtinguisherParticle : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
 
-        // Cấu hình Rigidbody để tối ưu cho việc nhận va chạm Trigger
+       //bat kinematic va tat dung vat ly de lua khong bi roi
         rb.isKinematic = true;
         rb.useGravity = false;
 
-        // Chế độ này giúp nhận diện va chạm với các vật Kinematic khác (như vòi xịt) tốt hơn
+        //che do giup nhan dien va cham voi vat the kinematic
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
     }
 
     void Update()
     {
-        // Ép Rigidbody không bao giờ rơi vào trạng thái "ngủ" (Sleep)
-        // Đây là lý do tại sao trước đó bạn phải bước vào mới nhận va chạm
+        //cho rb vao trang thai ngu, chỉ khi buoc vao moi trigger.
         if (rb.IsSleeping())
         {
             rb.WakeUp();

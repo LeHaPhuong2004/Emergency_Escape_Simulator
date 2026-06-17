@@ -3,8 +3,6 @@ using UnityEngine;
 
 using UnityEngine.SceneManagement;
 public class NavigationManager : MonoBehaviour
-
-   
 {
     public GameObject menuCanvas;
     public GameObject settingCanvas;
@@ -13,7 +11,52 @@ public class NavigationManager : MonoBehaviour
 
     public GameObject CurrentCanvas;
     public GameObject TargetCanvas;
+    public GameObject settingInGameCanvas;
+    public GameObject pauseCanvas;
+    public GameObject gameCanvas;
+   
+    
+    bool isPaused = false;
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (!isPaused)
+            {
+                Pause();
+            }
+            else
+            {
+                Resume();
+            }
+        }
+    }
+    public void Pause()
+    {
+        isPaused = true;
 
+        gameCanvas.SetActive(false);
+
+        pauseCanvas.SetActive(true);
+
+        Time.timeScale = 0f;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+    public void Resume()
+    {
+        isPaused = false;
+
+        pauseCanvas.SetActive(false);
+
+        gameCanvas.SetActive(true);
+
+        Time.timeScale = 1f;
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
     public void Play()
 
     {
@@ -39,7 +82,7 @@ public class NavigationManager : MonoBehaviour
     }
     public void ChooseMapAndPlay()
     {
-        SceneManager.LoadScene("GameScene");
+        SceneManager.LoadScene("Wakeup");
     }
     public void ExittoMenu()
     {
@@ -56,15 +99,21 @@ public class NavigationManager : MonoBehaviour
         Time.timeScale = 1f;
     }
 
-    public void Resume()
-    {
-
-    }
-
     public void SettingInGame()
     {
+        pauseCanvas.SetActive(false);
 
+        settingInGameCanvas.SetActive(true);
     }
+
+    public void BackToPause()
+    {
+        settingInGameCanvas.SetActive(false);
+
+        pauseCanvas.SetActive(true);
+    }
+
+  
     public void Exit()
     {
         Application.Quit();

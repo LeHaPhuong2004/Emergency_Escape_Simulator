@@ -13,34 +13,63 @@ public class Interaction : MonoBehaviour
     private Collider heldCol;
     private Collider playerCol;
 
+    public Transform faceMaskPoint;
     private UseFireEx extinguisher;
-    
 
+    public bool wearingWetMask = false;
+
+    [Header("Door UI")]
+    public GameObject handModel;        
+    public TextMeshProUGUI interactText;
+    public TextMeshProUGUI interactText2;
+    [Header("Animator")]
+    public Animator handAnimator;
+
+    private bool isCheckingDoor;
+
+    float coughTimer;
+    public GameObject HeldObject => heldObject;
     void Start()
     {
+        if (interactText2 != null)
+            interactText2.gameObject.SetActive(false);
         playerCol = GetComponent<Collider>();
+
+        if (handModel != null)
+            handModel.SetActive(false);
+
+        if (interactText != null)
+            interactText.gameObject.SetActive(false);
+
+        if (handAnimator != null)
+            handAnimator.SetBool("IsChecking", false);
+
+        if (itemName != null)
+            itemName.text = "";
     }
 
     void Update()
     {
-       
-        // ================= DEBUG Q INPUT =================
+
         if (Input.GetKey(KeyCode.Q))
         {
-            Debug.Log("Q PRESSED");
-
-            Debug.Log("heldObject = " + heldObject);
-            Debug.Log("extinguisher = " + extinguisher);
+            if (extinguisher != null && heldObject != null)
+                extinguisher.Spray(true);
+        }
+        else
+        {
+            if (extinguisher != null)
+                extinguisher.Spray(false);
         }
 
-        // ================= INTERACT =================
         if (Input.GetKeyDown(KeyCode.E))
         {
             if (TryOpenDoor()) return;
-
-            
+            if (TryWashTowel()) return;
+            WearTowelAsMask();
         }
 
+      
         if (Input.GetKeyDown(KeyCode.F))
         {
             if (heldObject == null)
@@ -49,18 +78,114 @@ public class Interaction : MonoBehaviour
                 DropObject();
         }
 
-        // ================= THROW =================
-        if (Input.GetMouseButtonDown(0) && heldObject != null)
+
+        if (Input.GetMouseButtonDown(0))
         {
-            ThrowObject();
+            if (TryCheckDoor())
+            {
+                isCheckingDoor = true;
+                return;
+            }
+
+            if (heldObject != null)
+                ThrowObject();
         }
 
-        // ================= FIRE =================
-        if (extinguisher && heldObject)
+        if (Input.GetMouseButton(0))
         {
-            Debug.Log("CALL SPRAY()");
-            extinguisher.Spray(Input.GetKey(KeyCode.Q));
+            HandleDoorCheckHold();
         }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            StopDoorCheckHold();
+        }
+
+        ShowDoorHover();
+        HandleCough();
+        if (!Input.GetMouseButton(0))
+        {
+            StopDoorCheckHold();
+        }
+    }
+    bool TryCheckDoor()
+    {
+        Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+        RaycastHit hit;
+
+        if (!Physics.Raycast(ray, out hit, pickUpRange))
+            return false;
+
+        OpenDoor door = hit.collider.GetComponent<OpenDoor>();
+        if (door == null)
+            return false;
+
+        if (door.isHot)
+            interactText.text = "The door is too hot...";
+        else
+            interactText.text = "Seems safe...";
+
+        CancelInvoke(nameof(ResetDoorText));
+        Invoke(nameof(ResetDoorText), 1.5f);
+
+        return true;
+    }
+
+    void HandleDoorCheckHold()
+    {
+        if (!Input.GetMouseButton(0))
+            return;
+
+        if (handModel != null)
+            handModel.SetActive(true);
+
+        if (handAnimator != null)
+            handAnimator.SetBool("IsChecking", true);
+
+        if (interactText != null)
+            interactText.gameObject.SetActive(true);
+    }
+
+    void StopDoorCheckHold()
+    {
+        if (handModel != null)
+            handModel.SetActive(false);
+
+        if (handAnimator != null)
+            handAnimator.SetBool("IsChecking", false);
+
+        if (interactText != null)
+            interactText.gameObject.SetActive(false);
+    }
+
+    void ResetDoorText()
+    {
+        if (interactText != null)
+            interactText.text = "Left Click to Check Door";
+    }
+
+    void ShowDoorHover()
+    {
+        Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, pickUpRange))
+        {
+            if (hit.collider.GetComponent<OpenDoor>() != null)
+            {
+                if (interactText != null)
+                {
+                    interactText.gameObject.SetActive(true);
+
+                    if (!Input.GetMouseButton(0))
+                        interactText.text = "Left Click to Check Door";
+                }
+                return;
+            }
+        }
+
+        if (!isCheckingDoor && interactText != null)
+            interactText.gameObject.SetActive(false);
     }
 
     void TryPickUp()
@@ -69,47 +194,15 @@ public class Interaction : MonoBehaviour
         RaycastHit hit;
 
         if (!Physics.Raycast(ray, out hit, pickUpRange))
-        {
-            Debug.Log("NO HIT");
             return;
-        }
-
-        if (
-            !hit.collider.CompareTag("Pickup") &&
-            !hit.collider.CompareTag("fire_ex") &&
-            !hit.collider.CompareTag("towel") &&
-            !hit.collider.CompareTag("wet_towel")
-        )
-        {
-            Debug.Log("HIT BUT NOT PICKUP: " + hit.collider.name);
-            return;
-        }
 
         heldObject = hit.collider.gameObject;
-        Debug.Log("PICKED: " + heldObject.name);
-        if (hit.collider.CompareTag("fire_ex"))
-        {
-            itemName.text = "Fire Extinguisher";
-        }
-        else if (hit.collider.CompareTag("towel"))
-        {
-            itemName.text = "Towel";
-        }
-        //else if (hit.collider.CompareTag("wet_towel"))
-        //{
-        //    itemName.text = "Wet towel";
-        //}
 
         heldRb = heldObject.GetComponent<Rigidbody>();
         heldCol = heldObject.GetComponent<Collider>();
 
-
-
         if (heldRb == null || heldCol == null)
-        {
-            Debug.Log("MISSING RB OR COL");
             return;
-        }
 
         heldRb.useGravity = false;
         heldRb.isKinematic = true;
@@ -121,37 +214,86 @@ public class Interaction : MonoBehaviour
         heldObject.transform.localPosition = Vector3.zero;
         heldObject.transform.localRotation = Quaternion.identity;
 
-        // ===== DEBUG EXTINGUISHER =====
         extinguisher = heldObject.GetComponent<UseFireEx>();
 
-        Debug.Log("UseFireEx FOUND = " + extinguisher);
-    }
-
-    void DropObject()
-    {
-        ReleaseObject();
-        heldObject = null;
-        itemName.text = "";
+        if (itemName != null)
+            itemName.text = heldObject.name;
     }
 
     void ThrowObject()
     {
-        GameObject obj = heldObject;
+        if (heldObject == null) return;
+
         Rigidbody rb = heldRb;
 
         ReleaseObject();
 
         if (rb != null)
-        {
             rb.AddForce(Camera.main.transform.forward * throwForce, ForceMode.Impulse);
+    }
+
+
+    bool TryWashTowel()
+    {
+        Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+        RaycastHit hit;
+
+        if (!Physics.Raycast(ray, out hit, pickUpRange))
+            return false;
+
+        if (!hit.collider.CompareTag("sink"))
+            return false;
+
+        if (heldObject == null)
+            return false;
+
+        if (!heldObject.CompareTag("towel"))
+            return false;
+
+        heldObject.tag = "wet_towel";
+
+        if (itemName != null)
+            itemName.text = "Wet Towel";
+
+        return true;
+    }
+
+    void WearTowelAsMask()
+    {
+        if (heldObject == null) return;
+        if (!heldObject.CompareTag("wet_towel")) return;
+
+        heldObject.transform.SetParent(faceMaskPoint);
+        heldObject.transform.localPosition = Vector3.zero;
+        heldObject.transform.localRotation = Quaternion.identity;
+
+        if (heldRb != null)
+        {
+            heldRb.isKinematic = true;
+            heldRb.useGravity = false;
         }
 
+        if (heldCol != null)
+            heldCol.enabled = false;
+
         heldObject = null;
+        heldRb = null;
+        heldCol = null;
+
+        wearingWetMask = true;
+
+        if (itemName != null)
+            itemName.text = "Mask On";
+
+    }
+
+    void DropObject()
+    {
+        ReleaseObject();
     }
 
     void ReleaseObject()
     {
-        itemName.text = "";
         if (heldObject == null) return;
 
         if (heldCol != null)
@@ -170,12 +312,14 @@ public class Interaction : MonoBehaviour
 
         heldObject.transform.SetParent(null);
 
-        extinguisher = null;
         heldObject = null;
         heldRb = null;
         heldCol = null;
-    }
+        extinguisher = null;
 
+        if (itemName != null)
+            itemName.text = "";
+    }
     bool TryOpenDoor()
     {
         Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
@@ -188,13 +332,51 @@ public class Interaction : MonoBehaviour
         if (door == null)
             return false;
 
+        if (door.isLocked)
+        {
+            interactText2.gameObject.SetActive(true);
+            interactText2.text = "Door Locked";
+
+            CancelInvoke(nameof(HideInteractText2));
+            Invoke(nameof(HideInteractText2), 1.5f);
+
+            return true;
+        }
+
+        if (door.needCrowbar && !HasCrowbar())
+        {
+            interactText2.gameObject.SetActive(true);
+            interactText2.text = "Need Crowbar";
+
+            CancelInvoke(nameof(HideInteractText2));
+            Invoke(nameof(HideInteractText2), 1.5f);
+
+            return true;
+        }
+
         door.ToggleDoor();
-        Debug.Log("Opened Door: " + hit.collider.name);
         return true;
     }
-
-    void MakeWetTowel()
+    void HideInteractText2()
     {
-        itemName.text = "Wet Towel";
+        if (interactText2 != null)
+            interactText2.gameObject.SetActive(false);
     }
+
+    void HandleCough() { }
+
+    public bool HasCrowbar()
+    {
+        return heldObject != null && heldObject.CompareTag("crowbar");
+    }
+    public bool IsHoldingObject()
+    {
+        return heldObject != null;
+    }
+
+    public bool IsHoldingExtinguisher()
+    {
+        return extinguisher != null;
+    }
+
 }

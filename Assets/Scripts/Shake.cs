@@ -3,16 +3,15 @@ using UnityEngine;
 
 public class Shake : MonoBehaviour
 {
+    [Header("Shake")]
     public float duration = 1f;
-    public bool start = false;
 
-    public float repeatTime = 15f;
+    [Header("Intro Explosion")]
+    public bool playIntroExplosion = true;
 
-    public float strength = 0.2f;
+    public float repeatTime = 50f;
 
     public AudioSource explosionSound;
-
-    
 
     Vector3 originalLocalPos;
 
@@ -20,18 +19,30 @@ public class Shake : MonoBehaviour
     {
         originalLocalPos = transform.localPosition;
 
-        StartCoroutine(ExplosionLoop());
-    }
-
-    void Update()
-    {
-        if (start)
+        //lap lai shake sau 1 khoang thoi gian
+        if (playIntroExplosion)
         {
-            start = false;
-            StartCoroutine(Shaking());
+            StartCoroutine(ExplosionLoop());
         }
     }
+// shake boi cua
+    public void TriggerShake()
+    {
+        StartCoroutine(Shaking());
+    }
 
+    
+    public void TriggerIntroExplosion()
+    {
+        if (explosionSound != null)
+        {
+            explosionSound.Play();
+        }
+
+        StartCoroutine(Shaking());
+    }
+
+   
     IEnumerator Shaking()
     {
         float elapsedTime = 0f;
@@ -42,7 +53,7 @@ public class Shake : MonoBehaviour
 
             transform.localPosition =
                 originalLocalPos +
-                Random.insideUnitSphere;
+                Random.insideUnitSphere * 2f;
 
             yield return null;
         }
@@ -50,20 +61,18 @@ public class Shake : MonoBehaviour
         transform.localPosition = originalLocalPos;
     }
 
+    
     IEnumerator ExplosionLoop()
     {
         while (true)
         {
-            // phát tiếng nổ
             if (explosionSound != null)
             {
                 explosionSound.Play();
             }
 
-            // rung camera
             yield return StartCoroutine(Shaking());
 
-            // chờ tới lần nổ tiếp
             yield return new WaitForSeconds(repeatTime);
         }
     }

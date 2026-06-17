@@ -4,14 +4,13 @@ public class UseFireEx : MonoBehaviour
 {
     public ParticleSystem spray;
     public Transform output;
-    public Collider sprayHitbox; // Cái BoxCollider ở mũi vòi
+    public Collider sprayHitbox; // boxcollider mui voi
     public float damagePerSecond = 50f;
 
-    private bool isCurrentlySpraying = false; // Biến kiểm soát trạng thái nội bộ
-
+    private bool isCurrentlySpraying = false; //bien kiem soat trang thai noi bo
     void Start()
     {
-        // Quan trọng: Tắt hitbox ngay khi game bắt đầu
+        //tam tat hitbox
         if (sprayHitbox != null)
             sprayHitbox.enabled = false;
 
@@ -23,7 +22,7 @@ public class UseFireEx : MonoBehaviour
     {
         if (!spray) return;
 
-        // Lưu trạng thái để dùng trong OnTriggerStay
+        //luu trang thai 
         isCurrentlySpraying = isSpraying;
 
         spray.transform.position = output.position;
@@ -32,18 +31,18 @@ public class UseFireEx : MonoBehaviour
         if (isSpraying)
         {
             if (!spray.isPlaying) spray.Play();
-            if (sprayHitbox != null) sprayHitbox.enabled = true; // Chỉ bật khi ấn Q
+            if (sprayHitbox != null) sprayHitbox.enabled = true; //chi bat khi an Q
         }
         else
         {
             if (spray.isPlaying) spray.Stop(true, ParticleSystemStopBehavior.StopEmitting);
-            if (sprayHitbox != null) sprayHitbox.enabled = false; // Tắt ngay khi nhả Q
+            if (sprayHitbox != null) sprayHitbox.enabled = false; // tat ngay khi khong can Q
         }
     }
 
     private void OnTriggerStay(Collider other)
     {
-        // Thêm một lớp bảo vệ: Chỉ trừ máu nếu đang thực sự xịt
+        //chi tru mau khi xit
         if (!isCurrentlySpraying) return;
 
         FireHealth fire = other.GetComponent<FireHealth>();

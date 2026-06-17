@@ -23,11 +23,23 @@ public class SmokeEffect : MonoBehaviour
 
         float exposureMultiplier = status.GetExposureMultiplier();
 
+        Interaction interaction =
+    other.GetComponent<Interaction>();
+
+        float maskMultiplier = 1f;
+
+        if (interaction != null &&
+            interaction.wearingWetMask)
+        {
+            maskMultiplier = 0.3f;
+        }
+
         float oxygenDamage =
             oxygenReduce *
             crouchMultiplier *
             phaseMultiplier *
             exposureMultiplier *
+            maskMultiplier *
             Time.deltaTime;
 
         float healthDamage =
@@ -35,6 +47,7 @@ public class SmokeEffect : MonoBehaviour
             crouchMultiplier *
             phaseMultiplier *
             exposureMultiplier *
+            maskMultiplier *
             Time.deltaTime;
 
         if (status.currentBreath > 0)

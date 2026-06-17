@@ -12,6 +12,8 @@ TagManager:
   - towel
   - wet_towel
   - fire_ex
+  - sink
+  - crowbar
   layers:
   - Default
   - TransparentFX

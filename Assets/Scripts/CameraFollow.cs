@@ -3,7 +3,7 @@
 public class CameraFollow : MonoBehaviour
 {
     public float mouseSensitivity = 70f;
-    public Transform playerBody; // player xoay ngang
+    public Transform playerBody; 
     float xRotation = 0f;
     float mouseX;
     float mouseY;
