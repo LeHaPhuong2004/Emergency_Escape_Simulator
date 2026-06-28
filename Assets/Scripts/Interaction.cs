@@ -28,6 +28,7 @@ public class Interaction : MonoBehaviour
     private bool isCheckingDoor;
 
     float coughTimer;
+    public bool checkedDoor = false;
     public GameObject HeldObject => heldObject;
     void Start()
     {
@@ -101,15 +102,20 @@ public class Interaction : MonoBehaviour
             StopDoorCheckHold();
         }
 
-        ShowDoorHover();
+        //ShowDoorHover();
         HandleCough();
         if (!Input.GetMouseButton(0))
         {
             StopDoorCheckHold();
         }
     }
+    string T(string en, string vi)
+    {
+        return LanguageManager.Instance.CurrentLanguage == 0 ? en : vi;
+    }
     bool TryCheckDoor()
     {
+
         Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
         RaycastHit hit;
 
@@ -121,16 +127,20 @@ public class Interaction : MonoBehaviour
             return false;
 
         if (door.isHot)
-            interactText.text = "The door is too hot...";
+            interactText.text = T("The door is too hot...", "Cửa quá nóng...");
         else
-            interactText.text = "Seems safe...";
-
-        CancelInvoke(nameof(ResetDoorText));
-        Invoke(nameof(ResetDoorText), 1.5f);
+            interactText.text = T("Seems safe...", "Có vẻ an toàn...");
+        checkedDoor = true;
+        CancelInvoke(nameof(HideDoorText));
+        Invoke(nameof(HideDoorText), 1.5f);
 
         return true;
     }
-
+    void HideDoorText()
+    {
+        if (interactText != null)
+            interactText.gameObject.SetActive(false);
+    }
     void HandleDoorCheckHold()
     {
         if (!Input.GetMouseButton(0))
@@ -145,7 +155,29 @@ public class Interaction : MonoBehaviour
         if (interactText != null)
             interactText.gameObject.SetActive(true);
     }
+    string GetItemName(GameObject obj)
+    {
+        if (obj == null) return "";
 
+        bool isEN = LanguageManager.Instance.CurrentLanguage == 0;
+
+        switch (obj.tag)
+        {
+            case "fire_ex":
+                return isEN ? "Fire Extinguisher" : "Bình chữa cháy";
+
+            case "towel":
+                return isEN ? "Towel" : "Khăn";
+
+            case "wet_towel":
+                return isEN ? "Wet Towel" : "Khăn ướt";
+
+            case "crowbar":
+                return isEN ? "Crowbar" : "Xà beng";
+        }
+
+        return obj.name;
+    }
     void StopDoorCheckHold()
     {
         if (handModel != null)
@@ -155,13 +187,16 @@ public class Interaction : MonoBehaviour
             handAnimator.SetBool("IsChecking", false);
 
         if (interactText != null)
+        {
             interactText.gameObject.SetActive(false);
+            ResetDoorText();     
+        }
     }
 
     void ResetDoorText()
     {
-        if (interactText != null)
-            interactText.text = "Left Click to Check Door";
+        interactText.text = "";
+        //T("Left Click to Check Door", "Chuột trái để kiểm tra cửa");
     }
 
     void ShowDoorHover()
@@ -173,36 +208,41 @@ public class Interaction : MonoBehaviour
         {
             if (hit.collider.GetComponent<OpenDoor>() != null)
             {
-                if (interactText != null)
-                {
-                    interactText.gameObject.SetActive(true);
-
-                    if (!Input.GetMouseButton(0))
-                        interactText.text = "Left Click to Check Door";
-                }
+                interactText.gameObject.SetActive(true);
+                interactText.text = T("Left Click to Check Door",
+                                      "Chuột trái để kiểm tra cửa");
                 return;
             }
         }
 
-        if (!isCheckingDoor && interactText != null)
-            interactText.gameObject.SetActive(false);
+        interactText.gameObject.SetActive(false);
     }
 
-    void TryPickUp()
+    bool TryPickUp()
     {
         Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
         RaycastHit hit;
 
         if (!Physics.Raycast(ray, out hit, pickUpRange))
-            return;
+            return false;
 
-        heldObject = hit.collider.gameObject;
+        GameObject target = hit.collider.gameObject;
+
+        if (!target.CompareTag("fire_ex") &&
+            !target.CompareTag("towel") &&
+            !target.CompareTag("crowbar") &&
+            !target.CompareTag("wet_towel"))
+        {
+            return false;
+        }
+
+        heldObject = target;
 
         heldRb = heldObject.GetComponent<Rigidbody>();
         heldCol = heldObject.GetComponent<Collider>();
 
         if (heldRb == null || heldCol == null)
-            return;
+            return false;
 
         heldRb.useGravity = false;
         heldRb.isKinematic = true;
@@ -217,7 +257,9 @@ public class Interaction : MonoBehaviour
         extinguisher = heldObject.GetComponent<UseFireEx>();
 
         if (itemName != null)
-            itemName.text = heldObject.name;
+            itemName.text = GetItemName(heldObject);
+
+        return true;
     }
 
     void ThrowObject()
@@ -253,7 +295,7 @@ public class Interaction : MonoBehaviour
         heldObject.tag = "wet_towel";
 
         if (itemName != null)
-            itemName.text = "Wet Towel";
+            itemName.text = GetItemName(heldObject);
 
         return true;
     }
@@ -276,15 +318,15 @@ public class Interaction : MonoBehaviour
         if (heldCol != null)
             heldCol.enabled = false;
 
+        wearingWetMask = true;
+
+        // 👉 lấy tên TRƯỚC khi null
+        if (itemName != null)
+            itemName.text = GetItemName(heldObject);
+
         heldObject = null;
         heldRb = null;
         heldCol = null;
-
-        wearingWetMask = true;
-
-        if (itemName != null)
-            itemName.text = "Mask On";
-
     }
 
     void DropObject()
@@ -335,7 +377,7 @@ public class Interaction : MonoBehaviour
         if (door.isLocked)
         {
             interactText2.gameObject.SetActive(true);
-            interactText2.text = "Door Locked";
+            interactText2.text = T("Door Locked", "Cửa bị khóa");
 
             CancelInvoke(nameof(HideInteractText2));
             Invoke(nameof(HideInteractText2), 1.5f);
@@ -343,17 +385,29 @@ public class Interaction : MonoBehaviour
             return true;
         }
 
-        if (door.needCrowbar && !HasCrowbar())
+        if (door.needCrowbar)
         {
-            interactText2.gameObject.SetActive(true);
-            interactText2.text = "Need Crowbar";
+            if (!HasCrowbar())
+            {
+                interactText2.gameObject.SetActive(true);
+                interactText2.text = T("Need Crowbar", "Cần xà beng");
 
-            CancelInvoke(nameof(HideInteractText2));
-            Invoke(nameof(HideInteractText2), 1.5f);
+                CancelInvoke(nameof(HideInteractText2));
+                Invoke(nameof(HideInteractText2), 1.5f);
 
+                return true;
+            }
+
+            Animator crowbarAnimator = heldObject.GetComponent<Animator>();
+
+            if (crowbarAnimator != null)
+                crowbarAnimator.SetTrigger("UseCrowbar");
+
+            door.ToggleDoor();
             return true;
         }
 
+        // cửa thường
         door.ToggleDoor();
         return true;
     }
@@ -369,6 +423,7 @@ public class Interaction : MonoBehaviour
     {
         return heldObject != null && heldObject.CompareTag("crowbar");
     }
+    
     public bool IsHoldingObject()
     {
         return heldObject != null;

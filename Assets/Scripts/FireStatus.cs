@@ -18,7 +18,7 @@ public class FireHealth : MonoBehaviour
 
     public void TakeDamage(float dmg)
     {
-        Debug.Log("Lửa đang nhận sát thương: " + dmg + " Máu còn lại: " + fireHP);
+       
         fireHP -= dmg;
         fireHP = Mathf.Clamp(fireHP, 0, 200);
 
@@ -33,7 +33,7 @@ public class FireHealth : MonoBehaviour
 
     void Extinguish()
     {
-        Debug.Log("Fire extinguished!");
+       
         Destroy(gameObject);
     }
 }

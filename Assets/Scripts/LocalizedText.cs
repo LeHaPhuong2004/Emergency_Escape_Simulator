@@ -1,44 +1,52 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 
 public class LocalizedText : MonoBehaviour
 {
-    [TextArea]
-    public string englishText;
-
-    [TextArea]
-    public string vietnameseText;
+    [TextArea] public string englishText;
+    [TextArea] public string vietnameseText;
 
     private TextMeshProUGUI textUI;
 
     private void Awake()
     {
         textUI = GetComponent<TextMeshProUGUI>();
+    }
 
-        Debug.Log("LocalizedText Awake: " + gameObject.name);
+    private void OnEnable()
+    {
+        UpdateText();
     }
 
     private void Start()
     {
-        UpdateLanguage();
+        UpdateText();
     }
 
-    public void UpdateLanguage()
+    private void LateUpdate()
     {
-        Debug.Log(
-            "Language = " +
-            LanguageManager.Instance.CurrentLanguage);
-
-        if (LanguageManager.Instance.CurrentLanguage == 0)
+        // Nếu LanguageManager spawn muộn hơn
+        // hoặc text chưa được gán thì tự cập nhật lại 1 lần
+        if (textUI != null && string.IsNullOrEmpty(textUI.text))
         {
-            textUI.text = englishText;
-            Debug.Log("Set English");
-        }
-        else
-        {
-            textUI.text = vietnameseText;
-            Debug.Log("Set Vietnamese");
+            UpdateText();
         }
     }
 
+    public void UpdateText()
+    {
+        if (textUI == null)
+            textUI = GetComponent<TextMeshProUGUI>();
+
+        if (textUI == null)
+            return;
+
+        if (LanguageManager.Instance == null)
+            return;
+
+        textUI.text =
+            LanguageManager.Instance.CurrentLanguage == 0
+            ? englishText
+            : vietnameseText;
+    }
 }

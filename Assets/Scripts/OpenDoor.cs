@@ -33,7 +33,11 @@ public class OpenDoor : MonoBehaviour
             transform.eulerAngles + Vector3.up * openAngle
         );
     }
+    private void Awake()
+    {
+        Debug.Log("AudioManager Awake: " + gameObject.scene.name);
 
+    }
     public void ToggleDoor()
     {
         //neu cua la cua no thì ch no
@@ -42,7 +46,7 @@ public class OpenDoor : MonoBehaviour
             ExplodeDoor();
             return;
         }
-
+        AudioManager.instance.PlaySFX(AudioManager.instance.doorClip);
         //cua thuong
         isOpen = !isOpen;
     }
@@ -90,6 +94,8 @@ public class OpenDoor : MonoBehaviour
         //bat am thanh no
         if (AudioManager.instance != null)
         {
+            Debug.Log(AudioManager.instance);
+            Debug.Log(AudioManager.instance.explosionClip);
             AudioManager.instance.PlaySFX(
                 AudioManager.instance.explosionClip
             );

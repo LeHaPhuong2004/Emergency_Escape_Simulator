@@ -3,10 +3,9 @@ using UnityEngine;
 
 public class Timer : MonoBehaviour
 {
-    public float timeLeft = 30f;
+    public float timeLeft = 180f;
 
-    public TextMeshProUGUI timerText;
-
+    public TextMeshProUGUI timerText;   
     private PlayerStatus ps;
 
     bool isRunning = false;
@@ -26,8 +25,8 @@ public class Timer : MonoBehaviour
 
         isRunning = true;
 
-        if (!isRunning)
-            return;
+        //if (!isRunning)
+        //    return;
 
         timeLeft -= Time.deltaTime;
 

@@ -23,7 +23,7 @@ public class LanguageDropdown : MonoBehaviour
         foreach (LocalizedText text in localizedTexts)
         {
             if (text != null)
-                text.UpdateLanguage();
+                text.UpdateText();
         }
 
         Debug.Log("Language Changed: " + dropdown.options[index].text);

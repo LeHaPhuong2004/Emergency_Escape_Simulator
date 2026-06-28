@@ -1,0 +1,14 @@
+{
+  "ITEM_CROWBAR": {
+    "en": "Crowbar",
+    "vi": "Xà beng"
+  },
+  "ITEM_MEDKIT": {
+    "en": "Medkit",
+    "vi": "Bộ cứu thương"
+  },
+  "UI_PLAY": {
+    "en": "Play",
+    "vi": "Chơi"
+  }
+}

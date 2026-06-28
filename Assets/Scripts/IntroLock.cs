@@ -8,7 +8,8 @@ public class IntroLock : MonoBehaviour
     public MonoBehaviour playerLook;
     public MonoBehaviour playerMove;
 
-    public float introTime = 5f;
+    public Interaction interaction;
+    public float introTime = 4.3f;
 
     IEnumerator Start()
     {
@@ -23,6 +24,9 @@ public class IntroLock : MonoBehaviour
         if (playerMove != null)
             playerMove.enabled = false;
 
+        if (interaction != null)
+            interaction.enabled = false;
+
         yield return new WaitForSeconds(introTime);
 
         if (playerLook != null)
@@ -31,6 +35,11 @@ public class IntroLock : MonoBehaviour
         if (playerMove != null)
             playerMove.enabled = true;
 
+        if (interaction != null)
+            interaction.enabled = true;
+
         introFinished = true;
     }
+
+
 }

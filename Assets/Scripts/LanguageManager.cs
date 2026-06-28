@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class LanguageManager : MonoBehaviour
 {
@@ -25,7 +25,6 @@ public class LanguageManager : MonoBehaviour
     public void SetLanguage(int languageIndex)
     {
         CurrentLanguage = languageIndex;
-
         PlayerPrefs.SetInt("Language", languageIndex);
         PlayerPrefs.Save();
     }

@@ -24,7 +24,7 @@ public class Player : MonoBehaviour
     public float groundDamping = 2f; 
     public LayerMask groundLayer;
     public bool isGrounded;
-    public float maxSlopeAngle = 45f; // góc để leo tối đa
+    public float maxSlopeAngle = 45f;
     private RaycastHit slopeHit;
 
     [Header("State (IMPORTANT)")]
@@ -63,8 +63,16 @@ public class Player : MonoBehaviour
         moveX = Input.GetAxisRaw("Horizontal");
         moveZ = Input.GetAxisRaw("Vertical");
 
-       // ban tia raycst xuong dat de kiem tra mat dat va luu vao slopehit
-        isGrounded = Physics.Raycast(transform.position, Vector3.down, out slopeHit, 1.1f, groundLayer);
+        // ban tia raycst xuong dat de kiem tra mat dat va luu vao slopehit
+        float rayLength = (col.height * 0.5f) + 0.2f;
+
+        isGrounded = Physics.Raycast(
+            transform.position,
+            Vector3.down,
+            out slopeHit,
+            rayLength,
+            groundLayer
+        );
 
         //quan li luc cản
         if (isGrounded)
@@ -125,7 +133,12 @@ public class Player : MonoBehaviour
 
     void HandleFootstep()
     {
-        bool isMoving = Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0;
+        bool isMoving =
+    isGrounded &&
+    (
+        Input.GetAxisRaw("Horizontal") != 0 ||
+        Input.GetAxisRaw("Vertical") != 0
+    );
 
         if (isMoving)
         {
@@ -150,10 +163,8 @@ public class Player : MonoBehaviour
 
     void MovePlayer()
     {
-        //tinh huong di chuyen dua tren goc quay nhan vat
         Vector3 moveDir = transform.forward * moveZ + transform.right * moveX;
 
-        //tinh toc do
         float speed = moveSpeed;
 
         if (isSprinting && moveZ > 0)
@@ -165,31 +176,38 @@ public class Player : MonoBehaviour
             isSprinting = false;
         }
 
-        //chuan hoa vector ban dau
         Vector3 finalMoveDir = moveDir.normalized;
 
-        //leo cau thang
         if (isGrounded)
         {
-            //tinh goc cua doc dua vao vector phap tuyen
             float slopeAngle = Vector3.Angle(Vector3.up, slopeHit.normal);
 
-            //do doc hop le
             if (slopeAngle < maxSlopeAngle && slopeAngle > 0)
             {
-                //be cong vector di chuyen de di chuyen len doc
-                finalMoveDir = Vector3.ProjectOnPlane(finalMoveDir, slopeHit.normal).normalized;
+                finalMoveDir = Vector3.ProjectOnPlane(
+                    finalMoveDir,
+                    slopeHit.normal
+                ).normalized;
             }
 
-           //áp dụng van toc di chuyen
             Vector3 vel = finalMoveDir * speed;
-            rb.linearVelocity = vel;
+
+            // Giữ nguyên velocity Y để không làm khựng cú nhảy
+            rb.linearVelocity = new Vector3(
+                vel.x,
+                rb.linearVelocity.y,
+                vel.z
+            );
         }
         else
         {
-            //neu dang nhay thi chi di chuyen xz giu nguyen trang thai roi cua y
             Vector3 vel = finalMoveDir * speed;
-            rb.linearVelocity = new Vector3(vel.x, rb.linearVelocity.y, vel.z);
+
+            rb.linearVelocity = new Vector3(
+                vel.x,
+                rb.linearVelocity.y,
+                vel.z
+            );
         }
     }
 

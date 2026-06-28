@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 
 public class TutorialManager : MonoBehaviour
@@ -8,6 +8,7 @@ public class TutorialManager : MonoBehaviour
     [Header("References")]
     public Interaction playerInteraction;
     public OpenDoor tutorialDoor;
+    public GameObject canvasDone;
 
     private int step;
 
@@ -15,7 +16,13 @@ public class TutorialManager : MonoBehaviour
     private bool a;
     private bool s;
     private bool d;
+    public bool isExtinguished;
 
+    public FireHealth tutorialFire;
+
+    public Player controller;
+    public Interaction interaction;
+    public CameraFollow cameraFollow;
     void Start()
     {
         ShowStep();
@@ -54,15 +61,26 @@ public class TutorialManager : MonoBehaviour
                 break;
 
             case 7:
-                CheckDoor();
+                CheckDoorCheck();
                 break;
 
             case 8:
+                CheckDoor();
+                break;
+
+            case 9:
                 CheckWearMask();
                 break;
         }
     }
-
+    void CheckDoorCheck()
+    {
+        if (playerInteraction != null &&
+            playerInteraction.checkedDoor)
+        {
+            NextStep();
+        }
+    }
     void CheckMovement()
     {
         if (Input.GetKeyDown(KeyCode.W)) w = true;
@@ -73,11 +91,19 @@ public class TutorialManager : MonoBehaviour
         if (w && a && s && d)
             NextStep();
     }
-
+    private int runPressCount;
     void CheckRun()
     {
         if (Input.GetKeyDown(KeyCode.W))
-            NextStep();
+        {
+            runPressCount++;
+
+            if (runPressCount >= 2)
+            {
+                runPressCount = 0;
+                NextStep();
+            }
+        }
     }
 
     void CheckCrouch()
@@ -103,9 +129,13 @@ public class TutorialManager : MonoBehaviour
 
     void CheckSpray()
     {
-        if (playerInteraction != null &&
-            playerInteraction.IsHoldingExtinguisher() &&
-            Input.GetKey(KeyCode.Q))
+        if (tutorialFire == null)
+        {
+            NextStep();
+            return;
+        }
+
+        if (tutorialFire.fireHP <= 0)
         {
             NextStep();
         }
@@ -148,44 +178,86 @@ public class TutorialManager : MonoBehaviour
         switch (step)
         {
             case 0:
-                tutorialText.text = "Press WASD to Move";
+                tutorialText.text =
+                    T("Press WASD to Move",
+                      "Nhấn WASD để di chuyển");
                 break;
 
             case 1:
-                tutorialText.text = "Double Press W to Run";
+                tutorialText.text =
+                    T("Double Press W to Run",
+                      "Nhấn W hai lần để chạy");
                 break;
 
             case 2:
-                tutorialText.text = "Press Left Shift to Crouch";
+                tutorialText.text =
+                    T("Press Left Shift to Crouch",
+                      "Nhấn Shift trái để cúi người");
                 break;
 
             case 3:
-                tutorialText.text = "Press Space to Jump";
+                tutorialText.text =
+                    T("Press Space to Jump",
+                      "Nhấn Space để nhảy");
                 break;
 
             case 4:
-                tutorialText.text = "Press F to Pick Up Fire Extinguisher";
+                tutorialText.text =
+                    T("Press F to Pick Up Fire Extinguisher",
+                      "Nhấn F để nhặt bình chữa cháy");
                 break;
 
             case 5:
-                tutorialText.text = "Hold Q to Extinguish Fire";
+                tutorialText.text =
+                    T("Hold Q to Extinguish Fire",
+                      "Giữ Q để phun chữa cháy");
                 break;
 
             case 6:
-                tutorialText.text = "Press Left Mouse Button to Throw Item";
+                tutorialText.text =
+                    T("Press Left Mouse Button to Throw Item",
+                      "Nhấn chuột trái để ném vật phẩm");
                 break;
 
             case 7:
-                tutorialText.text = "Press E to Open the Door and Go to the Bathroom";
+                tutorialText.text =
+                    T("Hold Left Mouse Button to Check the Door",
+                      "Giữ chuột trái để kiểm tra cửa");
                 break;
 
             case 8:
-                tutorialText.text = "Press E to Wet the Towel and Press E Again to Wear It";
+                tutorialText.text =
+                    T("Press E to Open the Door and Go to the Bathroom",
+                      "Nhấn E để mở cửa và đi vào phòng tắm");
                 break;
 
             case 9:
-                tutorialText.text = "Tutorial Complete!";
+                tutorialText.text =
+                    T("Press E to Wet the Towel and Press E Again to Wear It",
+                      "Nhấn E để làm ướt khăn rồi nhấn E lần nữa để đeo");
+                break;
+
+            case 10:
+                tutorialText.gameObject.SetActive(false);
+                Invoke(nameof(ShowDonePanel), 1f); // hoặc 2f
                 break;
         }
+    }
+    void ShowDonePanel()
+    {
+        controller.enabled = false;
+        interaction.enabled = false;
+        cameraFollow.enabled = false;
+
+        canvasDone.SetActive(true);
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+    string T(string en, string vi)
+    {
+        return LanguageManager.Instance.CurrentLanguage == 0
+            ? en
+            : vi;
     }
 }

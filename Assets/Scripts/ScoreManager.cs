@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine.UI;
 using DG.Tweening;
 using System.Collections;
+
 public class ScoreManager : MonoBehaviour
 {
     [Header("References")]
@@ -11,6 +12,7 @@ public class ScoreManager : MonoBehaviour
 
     [Header("UI")]
     public GameObject winPanel;
+    public GameObject losePanel;
 
     public TextMeshProUGUI scoreText;
 
@@ -24,11 +26,12 @@ public class ScoreManager : MonoBehaviour
 
     float finalScore;
 
-    bool escaped = false;
+    bool gameEnded = false;
 
     private void Start()
     {
         winPanel.SetActive(false);
+        losePanel.SetActive(false);
 
         SetStarDim(star1);
         SetStarDim(star2);
@@ -37,15 +40,23 @@ public class ScoreManager : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (escaped) return;
+        if (gameEnded) return;
 
-        if (other.CompareTag("Player"))
+        // Người chơi chạm cổng thoát
+        if (other.CompareTag("Player") && CompareTag("Finish"))
         {
-            escaped = true;
+            gameEnded = true;
 
             CalculateScore();
-
             ShowResultUI();
+        }
+
+        // Người chơi chạm vùng thua
+        if (other.CompareTag("Player") && CompareTag("LoseZone"))
+        {
+            gameEnded = true;
+
+            ShowLoseUI();
         }
     }
 
@@ -63,12 +74,10 @@ public class ScoreManager : MonoBehaviour
 
         timeScore = Mathf.Clamp(timeScore, 0, 1000f);
 
-    
         float breathScore =
             (playerStatus.currentBreath /
              playerStatus.maxBreath) * 500f;
 
-        
         finalScore =
             healthScore +
             timeScore +
@@ -79,6 +88,11 @@ public class ScoreManager : MonoBehaviour
     {
         winPanel.SetActive(true);
 
+        // Reset sao
+        SetStarDim(star1);
+        SetStarDim(star2);
+        SetStarDim(star3);
+
         scoreText.text =
             "Score: " + Mathf.RoundToInt(finalScore);
 
@@ -86,14 +100,11 @@ public class ScoreManager : MonoBehaviour
 
         if (finalScore >= 2200)
             starCount = 3;
-
         else if (finalScore >= 1700)
             starCount = 2;
-
         else if (finalScore >= 1200)
             starCount = 1;
 
-        // delay 1 frame để panel active 
         StartCoroutine(ShowStars(starCount));
 
         Cursor.lockState = CursorLockMode.None;
@@ -101,6 +112,17 @@ public class ScoreManager : MonoBehaviour
 
         Time.timeScale = 0f;
     }
+
+    void ShowLoseUI()
+    {
+        losePanel.SetActive(true);
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        Time.timeScale = 0f;
+    }
+
     IEnumerator ShowStars(int starCount)
     {
         yield return null;
@@ -117,11 +139,7 @@ public class ScoreManager : MonoBehaviour
 
     void FillStar(Image star, float delay)
     {
-        if (star == null) return;
-
-        Color c = star.color;
-        c.a = 1f;
-        star.color = c;
+        star.color = Color.white;
 
         star.transform.localScale = Vector3.zero;
 
@@ -129,13 +147,11 @@ public class ScoreManager : MonoBehaviour
             .DOScale(1f, 0.4f)
             .SetDelay(delay)
             .SetEase(Ease.OutBack)
-            .SetUpdate(true); 
+            .SetUpdate(true);
     }
 
     void SetStarDim(Image star)
     {
-        Color c = star.color;
-        c.a = 0.08f;
-        star.color = c;
+        star.color = new Color(0.4f, 0.4f, 0.4f, 1f);
     }
 }
