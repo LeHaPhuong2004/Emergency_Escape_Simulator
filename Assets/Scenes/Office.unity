@@ -2973,7 +2973,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &297991205
 Transform:
   m_ObjectHideFlags: 0
@@ -43964,7 +43964,6 @@ GameObject:
   - component: {fileID: 2137172505}
   - component: {fileID: 2137172507}
   - component: {fileID: 2137172506}
-  - component: {fileID: 2137172508}
   m_Layer: 0
   m_Name: Score
   m_TagString: Untagged
@@ -44011,7 +44010,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Score:'
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -44091,20 +44090,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2137172504}
   m_CullTransparentMesh: 1
---- !u!114 &2137172508
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2137172504}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5e0e4c13361a73949be181f786736c98, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
-  englishText: 'Score:'
-  vietnameseText: "\u0110i\u1EC3m:"
 --- !u!23 &175320187025234050
 MeshRenderer:
   m_ObjectHideFlags: 0

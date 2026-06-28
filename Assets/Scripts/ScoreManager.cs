@@ -94,7 +94,7 @@ public class ScoreManager : MonoBehaviour
         SetStarDim(star3);
 
         scoreText.text =
-            "Score: " + Mathf.RoundToInt(finalScore);
+    T("Score", "Điểm") + ": " + Mathf.RoundToInt(finalScore);
 
         int starCount = 0;
 
@@ -153,5 +153,11 @@ public class ScoreManager : MonoBehaviour
     void SetStarDim(Image star)
     {
         star.color = new Color(0.4f, 0.4f, 0.4f, 1f);
+    }
+    string T(string en, string vi)
+    {
+        return LanguageManager.Instance.CurrentLanguage == 0
+            ? en
+            : vi;
     }
 }
