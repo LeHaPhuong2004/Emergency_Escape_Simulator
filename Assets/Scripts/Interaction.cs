@@ -320,7 +320,7 @@ public class Interaction : MonoBehaviour
 
         wearingWetMask = true;
 
-        // 👉 lấy tên TRƯỚC khi null
+    
         if (itemName != null)
             itemName.text = GetItemName(heldObject);
 
